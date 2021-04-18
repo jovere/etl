@@ -285,3 +285,12 @@ examples/FunctionInterruptSimulation-Delegates/vs2019/.vs
 *.db-shm
 test/vs2019/.vs/etl/v16/Browse.VC.db-wal
 examples/SharedMessage/.vs
+test/sanity-check/c++03/bclang
+test/sanity-check/c++03/bgcc
+test/sanity-check/c++11/bclang
+test/sanity-check/c++11/bgcc
+test/sanity-check/c++14/bclang
+test/sanity-check/c++14/bgcc
+test/sanity-check/c++17/bclang
+test/sanity-check/c++17/bgcc
+test/sanity-check/log.txt
