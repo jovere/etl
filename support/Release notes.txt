@@ -1,4 +1,138 @@
 ===============================================================================
+20.9.1
+Replaced std::distance with etl::distance in erase() and erase_if() for vector.h
+
+===============================================================================
+20.9.0
+Fixed #362 'etl::fsm::receive() partial override'.
+Fixed #363 'circular_buffer operator [] takes integer rather than size_type'.
+Fixed occasional incorrect string length for etl::make_string.
+Added macros for compilers that don't support HUGE_VAL.
+Added etl::accumulate, etl::clamp, etl::erase, etl::erase_if, etl::remove, etl::remove_if.
+Added maths algorithms and functors.
+  etl::correlation
+  etl::covariance
+  etl::gamma_encode
+  etl:;gamma_decode
+  etl::histogram
+  etl::sparce_histogram
+  etl::mean
+  etl::invert
+  etl::threshold
+  etl::quantize
+  etl::limiter
+  etl::rescale
+  etl::rms
+  etl::standard_deviation
+  etl::variance
+
+===============================================================================
+20.8.0
+Added more CRCs, generalised table creation.
+Options for table sizes of 4, 16 and 256.
+Removed unnecessary non-const versions of iterators for containers.
+
+===============================================================================
+20.7.0
+Added etl::selection_sort.
+etl::delegate accepts moveable parameters.
+Fixed the return type of const iterators for containers from const_iterator to iterator.
+Changed many instances of 'static const' to 'static ETL_CONSTANT'.
+
+===============================================================================
+20.6.3
+Updates to unit test CMake files.
+Added missing include for string_utilities.h
+
+===============================================================================
+20.6.2
+C++98/03 compatibility fixes.
+Added 'sanity check' tests for checking for 98/03/11/14/17 issues.
+
+===============================================================================
+20.6.1
+Added missing etl::atomic<bool> from gcc & clang implementations.
+Changed nullptr to ETL_NULLPTR in buffer_descriptors and multi_range.
+Fixed header includes in state_chart.h
+
+===============================================================================
+20.6.0
+Added etl::message_router_registry.
+Changed etl::flat_multimap & etl::flat_multiset to iterate in insertion order, as per C++11 map and set.
+Added ETL_CONSTEXPR to etl::array.
+C++98 compatibility fixes.
+Remove unnecessary template keyword to destroy() call in etl::pool.
+Abstracted unit test framework header.
+
+===============================================================================
+20.5.2
+Fixed template aliases when using STL and below C++14
+
+===============================================================================
+20.5.1
+Fixed ambiguous template error for etl::extent.
+
+===============================================================================
+20.5.0
+Added specialisation of etl::state_chart to allow a parameter to be passed along
+with the event.
+Issue #339 - Fix extent type conversion warning
+Issue #340 - Export headers as system includes
+
+===============================================================================
+20.4.1
+Updates to etl::shared_message example application.
+
+===============================================================================
+20.4.0
+Added uninitialized_resize() to etl::vector and etl::basic_string.
+
+===============================================================================
+20.3.1
+Added ETL_CONSTANT to numeric_limits member functions.
+
+===============================================================================
+20.3.0
+Added initialize_free_space(), trim_to_terminator() and data_end() functions to
+strings for easier integration with C APIs.
+
+=============================================================================== 
+20.2.3
+Fixed indexing error in find_next() for etl::bitset.
+
+===============================================================================
+20.2.2
+Added non-const get_message() member funtions in shared message framework.
+
+===============================================================================
+20.2.1
+Modified reference_counted_message_pool::allocate() return type.
+Changed from etl::ireference_counted_message* to etl::reference_counted_message<TMessage, TCounter>*
+
+===============================================================================
+20.2.0
+Allow default constructed messages for shared messages.
+
+===============================================================================
+20.1.0
+Changed template aliases so they are available for C++11 rather than C++14.
+
+===============================================================================
+20.0.0
+Removed source 'etl::imessage_router&' parameter from the message framework 'receive'
+and 'on_receive' member functions.
+
+===============================================================================
+19.5.3
+Added move constructor and move assignment operator to etl::shared_message.
+
+===============================================================================
+19.5.2
+Fixed rollover error for etl::queue_spsc_atomic
+Added 'required_alignment' parameter to 'allocate' for etl::imemeory_block_allocator.
+Updated QueuedMessageRouter example.
+
+===============================================================================
 19.5.1
 Exclude integral types from being considered for iterator range container constructors.
 

@@ -43,7 +43,7 @@ SOFTWARE.
 #include <assert.h>
 #include <string.h>
 
-#if ETL_USING_STL
+#if defined(ETL_IN_UNIT_TEST) || ETL_USING_STL
   #include <memory>
 #endif
 
@@ -1542,9 +1542,8 @@ namespace etl
     unique_ptr(const unique_ptr&) ETL_DELETE;
     unique_ptr&	operator =(const unique_ptr&) ETL_DELETE;
 
+    pointer	p; 
     TDeleter deleter;
-
-    pointer	p;
   };
 }
 
@@ -2088,9 +2087,9 @@ namespace etl
 #endif
   };
 
-#if ETL_CPP14_SUPPORTED
+#if ETL_CPP11_SUPPORTED
   template <typename T, size_t N_Objects>
-  using uninitialized_buffer_of_v = typename uninitialized_buffer_of<T, N_Objects>::buffer;
+  using uninitialized_buffer_of_t = typename uninitialized_buffer_of<T, N_Objects>::buffer;
 #endif
 }
 

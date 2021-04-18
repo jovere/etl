@@ -26,7 +26,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ******************************************************************************/
 
-#include "UnitTest++/UnitTest++.h"
+#include "unit_test_framework.h"
 
 #include "etl/shared_message.h"
 #include "etl/message.h"
@@ -80,17 +80,17 @@ namespace
     {
     }
 
-    void on_receive(etl::imessage_router& source, const Message1& message)
+    void on_receive(const Message1& message)
     {
       ++count_message1;
     }
 
-    void on_receive(etl::imessage_router& source, const Message2& message)
+    void on_receive(const Message2& message)
     {
       ++count_message2;
     }
 
-    void on_receive_unknown(etl::imessage_router& source, const etl::imessage& message)
+    void on_receive_unknown(const etl::imessage& message)
     {
 
     }
@@ -118,12 +118,12 @@ namespace
     {
     }
 
-    void on_receive(etl::imessage_router& source, const Message1& message)
+    void on_receive(const Message1& message)
     {
       ++count_message1;
     }
 
-    void on_receive_unknown(etl::imessage_router& source, const etl::imessage& message)
+    void on_receive_unknown(const etl::imessage& message)
     {
       ++count_unknown_message;
     }
@@ -180,6 +180,39 @@ namespace
     };
 
     //*************************************************************************
+    TEST(test_move_constructor)
+    {
+      etl::shared_message sm1(std::move(etl::shared_message(message_pool, Message1(1))));
+      CHECK_EQUAL(1, sm1.get_reference_count());
+    }
+
+    //*************************************************************************
+    TEST(test_default_message_constructor)
+    {
+      etl::reference_counted_message<Message2, etl::atomic_int>* prcm = message_pool.allocate<Message2>();
+
+      Message2&        m2 = prcm->get_message(); // Check that we can get a non-const reference to the message.
+      const Message2& cm2 = prcm->get_message(); // Check that we can get a const reference to the message.
+
+      etl::shared_message sm1(*prcm);
+
+      etl::imessage&        im = sm1.get_message(); // Check that we can get a non-const reference to the message.
+      const etl::imessage& cim = sm1.get_message(); // Check that we can get a const reference to the message.
+
+      CHECK_EQUAL(1, sm1.get_reference_count());
+      CHECK(sm1.is_valid());
+    }
+    
+    //*************************************************************************
+    TEST(test_move_assignment)
+    {
+      etl::shared_message sm2 = etl::shared_message(message_pool, Message1(2));
+      sm2 = std::move(etl::shared_message(message_pool, Message1(3)));
+      CHECK_EQUAL(1, sm2.get_reference_count());
+      CHECK(sm2.is_valid());
+    }
+
+    //*************************************************************************
     TEST(test_send_to_routers)
     {
       bus.clear();
@@ -199,6 +232,11 @@ namespace
       bus.receive(sm3);
       bus.receive(sm4);            // sm4 is a copy of sm1
       bus.receive(RouterId2, sm1); // Only send sm1 to Router2
+
+      CHECK(sm1.is_valid());
+      CHECK(sm2.is_valid());
+      CHECK(sm3.is_valid());
+      CHECK(sm4.is_valid());
 
       CHECK_EQUAL(2, sm1.get_reference_count());
       CHECK_EQUAL(1, sm2.get_reference_count());

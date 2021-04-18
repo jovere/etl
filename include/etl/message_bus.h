@@ -42,9 +42,6 @@ SOFTWARE.
 #include "message.h"
 #include "message_router.h"
 
-#undef ETL_FILE
-#define ETL_FILE "39"
-
 namespace etl
 {
   //***************************************************************************
@@ -68,7 +65,7 @@ namespace etl
   public:
 
     message_bus_too_many_subscribers(string_type file_name_, numeric_type line_number_)
-      : message_bus_exception(ETL_ERROR_TEXT("message bus:too many subscribers", ETL_FILE"A"), file_name_, line_number_)
+      : message_bus_exception(ETL_ERROR_TEXT("message bus:too many subscribers", ETL_MESSAGE_BUS_FILE_ID"A"), file_name_, line_number_)
     {
     }
   };
@@ -148,22 +145,19 @@ namespace etl
     }
 
     //*******************************************
-    virtual void receive(etl::imessage_router& source,
-                         const etl::imessage& message) ETL_OVERRIDE
+    virtual void receive(const etl::imessage& message) ETL_OVERRIDE
     {
-      receive(source, etl::imessage_router::ALL_MESSAGE_ROUTERS, message);
+      receive(etl::imessage_router::ALL_MESSAGE_ROUTERS, message);
     }
 
     //*******************************************
-    virtual void receive(etl::imessage_router& source,
-                         etl::shared_message   shared_msg) ETL_OVERRIDE
+    virtual void receive(etl::shared_message   shared_msg) ETL_OVERRIDE
     {
-      receive(source, etl::imessage_router::ALL_MESSAGE_ROUTERS, shared_msg);
+      receive(etl::imessage_router::ALL_MESSAGE_ROUTERS, shared_msg);
     }
 
     //********************************************
-    virtual void receive(etl::imessage_router&    source,
-                         etl::message_router_id_t destination_router_id, 
+    virtual void receive(etl::message_router_id_t destination_router_id, 
                          etl::shared_message      shared_msg) ETL_OVERRIDE
     {
       switch (destination_router_id)
@@ -181,7 +175,7 @@ namespace etl
 
             if (router.accepts(shared_msg.get_message().get_message_id()))
             {
-              router.receive(source, shared_msg);
+              router.receive(shared_msg);
             }
 
             ++irouter;
@@ -207,7 +201,7 @@ namespace etl
           {
             if ((*(range.first))->accepts(shared_msg.get_message().get_message_id()))
             {
-              (*(range.first))->receive(source, shared_msg);
+              (*(range.first))->receive(shared_msg);
             }
 
             ++range.first;
@@ -223,7 +217,7 @@ namespace etl
           while (irouter != router_list.end())
           {
             // So pass it on.
-            (*irouter)->receive(source, destination_router_id, shared_msg);
+            (*irouter)->receive(destination_router_id, shared_msg);
 
             ++irouter;
           }
@@ -234,8 +228,7 @@ namespace etl
     }
 
     //*******************************************
-    virtual void receive(etl::imessage_router&    source,
-                         etl::message_router_id_t destination_router_id,
+    virtual void receive(etl::message_router_id_t destination_router_id,
                          const etl::imessage&     message) ETL_OVERRIDE
     {
       switch (destination_router_id)
@@ -253,7 +246,7 @@ namespace etl
 
             if (router.accepts(message.get_message_id()))
             {
-              router.receive(source, message);
+              router.receive(message);
             }
 
             ++irouter;
@@ -279,7 +272,7 @@ namespace etl
           {
             if ((*(range.first))->accepts(message.get_message_id()))
             {
-              (*(range.first))->receive(source, message);
+              (*(range.first))->receive(message);
             }
 
             ++range.first;
@@ -288,14 +281,14 @@ namespace etl
           // Do any message buses.
           // These are always at the end of the list.
           irouter = etl::lower_bound(router_list.begin(),
-                                        router_list.end(),
-                                        etl::imessage_bus::MESSAGE_BUS,
-                                        compare_router_id());
+                                     router_list.end(),
+                                     etl::imessage_bus::MESSAGE_BUS,
+                                     compare_router_id());
 
           while (irouter != router_list.end())
           {
             // So pass it on.
-            (*irouter)->receive(source, destination_router_id, message);
+            (*irouter)->receive(destination_router_id, message);
 
             ++irouter;
           }
@@ -425,7 +418,7 @@ namespace etl
                                   etl::imessage_bus&    bus,
                                   const etl::imessage&  message)
   {
-    bus.receive(source, message);
+    bus.receive(message);
   }
 
   //***************************************************************************
@@ -436,10 +429,8 @@ namespace etl
                                   etl::message_router_id_t id,
                                   const etl::imessage&     message)
   {
-    bus.receive(source, id, message);
+    bus.receive(id, message);
   }
 }
-
-#undef ETL_FILE
 
 #endif

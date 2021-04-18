@@ -26,7 +26,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ******************************************************************************/
 
-#include "UnitTest++/UnitTest++.h"
+#include "unit_test_framework.h"
 
 #include <vector>
 #include <array>
@@ -338,6 +338,78 @@ namespace
 
       Data data(INITIAL_SIZE);
       data.resize(NEW_SIZE, INITIAL_VALUE);
+
+      CHECK_EQUAL(data.size(), NEW_SIZE);
+    }
+
+    //*************************************************************************
+    TEST_FIXTURE(SetupFixture, test_uninitialized_resize_up)
+    {
+      const size_t INITIAL_SIZE = 5;
+      const size_t NEW_SIZE = 8;
+
+      Data data(INITIAL_SIZE);
+
+      int* pbegin = &data.front();
+      int* pend   = &data.back() + 1;
+      int* pmax = pbegin + data.max_size();
+
+      constexpr int Pattern = 0x12345678;
+
+      // Fill free space with a pattern.
+      std::fill(pend, pmax, Pattern);
+
+      data.uninitialized_resize(NEW_SIZE);
+
+      for (int* p = pbegin; p != pend; ++p)
+      {
+        CHECK_EQUAL(*p, 0);
+      }
+
+      for (int* p = pend; p != pmax; ++p)
+      {
+        CHECK_EQUAL(*p, Pattern);
+      }
+
+      CHECK_EQUAL(data.size(), NEW_SIZE);
+    }
+
+    //*************************************************************************
+    TEST_FIXTURE(SetupFixture, test_uninitialized_resize_up_excess)
+    {
+      const size_t INITIAL_SIZE = 5;
+      const size_t NEW_SIZE = SIZE + 1;
+
+      Data data(INITIAL_SIZE);
+
+      CHECK_THROW(data.resize(NEW_SIZE), etl::vector_full);
+    }
+
+    //*************************************************************************
+    TEST_FIXTURE(SetupFixture, test_uninitialized_resize_down)
+    {
+      const size_t INITIAL_SIZE = 5;
+      const size_t NEW_SIZE = 2;
+
+      Data data(INITIAL_SIZE);
+
+      int* pbegin = &data.front();
+      int* pend   = &data.back() + 1;
+      int* pmax   = pbegin + data.max_size();
+
+      constexpr int Pattern = 0x12345678;
+
+      // Fill free space with a pattern.
+      std::fill(pend, pmax, Pattern);
+
+      data.uninitialized_resize(NEW_SIZE);
+
+      pend = &data.back() + 1;
+
+      for (int* p = pbegin; p < pend; ++p)
+      {
+        CHECK_EQUAL(*p, 0);
+      }
 
       CHECK_EQUAL(data.size(), NEW_SIZE);
     }
@@ -1202,6 +1274,34 @@ namespace
     {
       // No compilation error.
       etl::vector<int, 10> v(5, 5);
+    }
+
+    //*************************************************************************
+    TEST(remove)
+    {
+      const int raw[10] = { 1, 8, 2, 7, 7, 7, 4, 5, 10, 9 };
+      etl::vector<int, 10> data(etl::begin(raw), etl::end(raw));
+      std::array<int, 7>   expected = { 1, 8, 2, 4, 5, 10, 9 };
+
+      etl::erase(data, 7);
+
+      CHECK_EQUAL(expected.size(), data.size());
+
+      bool is_same = std::equal(expected.begin(), expected.end(), data.begin());
+      CHECK(is_same);
+    }
+
+    //*************************************************************************
+    TEST(remove_if)
+    {
+      const int raw[10] = { 1, 8, 2, 7, 7, 7, 4, 5, 10, 9 };
+      etl::vector<int, 10> data(etl::begin(raw), etl::end(raw));
+      std::array<int, 4>  expected = { 1, 2, 4, 5 };
+
+      etl::erase_if(data, [](int value) { return value >= 7; });
+            
+      bool is_same = std::equal(expected.begin(), expected.end(), data.begin());
+      CHECK(is_same);
     }
   };
 }

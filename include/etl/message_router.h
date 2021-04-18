@@ -66,9 +66,6 @@ SOFTWARE.
 #include "placement_new.h"
 #include "successor.h"
 
-#undef ETL_FILE
-#define ETL_FILE "35"
-
 namespace etl
 {
   //***************************************************************************
@@ -92,7 +89,7 @@ namespace etl
   public:
 
     message_router_illegal_id(string_type file_name_, numeric_type line_number_)
-      : message_router_exception(ETL_ERROR_TEXT("message router:illegal id", ETL_FILE"A"), file_name_, line_number_)
+      : message_router_exception(ETL_ERROR_TEXT("message router:illegal id", ETL_MESSAGE_ROUTER_FILE_ID"A"), file_name_, line_number_)
     {
     }
   };
@@ -112,58 +109,34 @@ namespace etl
   public:
 
     virtual ~imessage_router() {}
-    virtual void receive(etl::imessage_router& source, const etl::imessage& message) = 0;
+    virtual void receive(const etl::imessage& message) = 0;
     virtual bool accepts(etl::message_id_t id) const = 0;
     virtual bool is_null_router() const = 0;
     virtual bool is_producer() const = 0;
     virtual bool is_consumer() const = 0;
 
     //********************************************
-    virtual void receive(etl::imessage_router& source, etl::message_router_id_t destination_router_id, const etl::imessage& message)
+    virtual void receive(etl::message_router_id_t destination_router_id, const etl::imessage& message)
     {
       if ((destination_router_id == get_message_router_id()) || (destination_router_id == imessage_router::ALL_MESSAGE_ROUTERS))
       {
-        receive(source, message);
+        receive(message);
       }
     }
 
     //********************************************
-    void receive(etl::message_router_id_t destination_router_id, const etl::imessage& message)
+    virtual void receive(etl::shared_message shared_msg)
     {
-      receive(etl::get_null_message_router(), destination_router_id, message);
+      receive(shared_msg.get_message());
     }
 
     //********************************************
-    void receive(const etl::imessage& message)
-    {
-      receive(etl::get_null_message_router(), message);
-    }
-
-    //********************************************
-    virtual void receive(etl::imessage_router& source, etl::shared_message shared_msg)
-    {
-      receive(source, shared_msg.get_message());
-    }
-
-    //********************************************
-    virtual void receive(etl::imessage_router& source, etl::message_router_id_t destination_router_id, etl::shared_message shared_msg)
+    virtual void receive(etl::message_router_id_t destination_router_id, etl::shared_message shared_msg)
     {
       if ((destination_router_id == get_message_router_id()) || (destination_router_id == imessage_router::ALL_MESSAGE_ROUTERS))
       {
-        receive(source, shared_msg);
+        receive(shared_msg);
       }
-    }
-
-    //********************************************
-    void receive(etl::message_router_id_t destination_router_id, etl::shared_message shared_msg)
-    {
-      receive(etl::get_null_message_router(), destination_router_id, shared_msg);
-    }
-
-    //********************************************
-    void receive(etl::shared_message shared_msg)
-    {
-      receive(etl::get_null_message_router(), shared_msg);
     }
 
     //********************************************
@@ -222,7 +195,7 @@ namespace etl
     //********************************************
     using etl::imessage_router::receive;
 
-    void receive(etl::imessage_router&, const etl::imessage&) ETL_OVERRIDE
+    void receive(const etl::imessage&) ETL_OVERRIDE
     {
     }
 
@@ -282,7 +255,7 @@ namespace etl
     //********************************************
     using etl::imessage_router::receive;
 
-    void receive(etl::imessage_router&, const etl::imessage&) ETL_OVERRIDE
+    void receive(const etl::imessage&) ETL_OVERRIDE
     {
     }
 
@@ -312,24 +285,14 @@ namespace etl
       return false;
     }
   };
+
   //***************************************************************************
   /// Send a message to a router.
-  /// Sets the 'sender' to etl::null_message_router type.
   //***************************************************************************
   inline static void send_message(etl::imessage_router& destination,
                                   const etl::imessage&  message)
   {
     destination.receive(message);
-  }
-
-  //***************************************************************************
-  /// Send a message to a router.
-  //***************************************************************************
-  inline static void send_message(etl::imessage_router& source,
-                                  etl::imessage_router& destination,
-                                  const etl::imessage&  message)
-  {
-    destination.receive(source, message);
   }
 
   //***************************************************************************
@@ -363,37 +326,37 @@ namespace etl
     //**********************************************
     using etl::imessage_router::receive;
 
-    void receive(etl::imessage_router& source, const etl::imessage& msg) ETL_OVERRIDE
+    void receive(const etl::imessage& msg) ETL_OVERRIDE
     {
       const etl::message_id_t id = msg.get_message_id();
 
       switch (id)
       {
-        case T1::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T1&>(msg)); break;
-        case T2::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T2&>(msg)); break;
-        case T3::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T3&>(msg)); break;
-        case T4::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T4&>(msg)); break;
-        case T5::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T5&>(msg)); break;
-        case T6::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T6&>(msg)); break;
-        case T7::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T7&>(msg)); break;
-        case T8::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T8&>(msg)); break;
-        case T9::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T9&>(msg)); break;
-        case T10::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T10&>(msg)); break;
-        case T11::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T11&>(msg)); break;
-        case T12::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T12&>(msg)); break;
-        case T13::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T13&>(msg)); break;
-        case T14::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T14&>(msg)); break;
-        case T15::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T15&>(msg)); break;
-        case T16::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T16&>(msg)); break;
+        case T1::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T1&>(msg)); break;
+        case T2::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T2&>(msg)); break;
+        case T3::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T3&>(msg)); break;
+        case T4::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T4&>(msg)); break;
+        case T5::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T5&>(msg)); break;
+        case T6::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T6&>(msg)); break;
+        case T7::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T7&>(msg)); break;
+        case T8::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T8&>(msg)); break;
+        case T9::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T9&>(msg)); break;
+        case T10::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T10&>(msg)); break;
+        case T11::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T11&>(msg)); break;
+        case T12::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T12&>(msg)); break;
+        case T13::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T13&>(msg)); break;
+        case T14::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T14&>(msg)); break;
+        case T15::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T15&>(msg)); break;
+        case T16::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T16&>(msg)); break;
         default:
         {
            if (has_successor())
            {
-             get_successor().receive(source, msg);
+             get_successor().receive(msg);
            }
            else
            {
-             static_cast<TDerived*>(this)->on_receive_unknown(source, msg);
+             static_cast<TDerived*>(this)->on_receive_unknown(msg);
            }
            break;
         }
@@ -466,36 +429,36 @@ namespace etl
     //**********************************************
     using etl::imessage_router::receive;
 
-    void receive(etl::imessage_router& source, const etl::imessage& msg) ETL_OVERRIDE
+    void receive(const etl::imessage& msg) ETL_OVERRIDE
     {
       const size_t id = msg.get_message_id();
 
       switch (id)
       {
-        case T1::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T1&>(msg)); break;
-        case T2::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T2&>(msg)); break;
-        case T3::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T3&>(msg)); break;
-        case T4::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T4&>(msg)); break;
-        case T5::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T5&>(msg)); break;
-        case T6::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T6&>(msg)); break;
-        case T7::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T7&>(msg)); break;
-        case T8::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T8&>(msg)); break;
-        case T9::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T9&>(msg)); break;
-        case T10::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T10&>(msg)); break;
-        case T11::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T11&>(msg)); break;
-        case T12::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T12&>(msg)); break;
-        case T13::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T13&>(msg)); break;
-        case T14::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T14&>(msg)); break;
-        case T15::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T15&>(msg)); break;
+        case T1::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T1&>(msg)); break;
+        case T2::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T2&>(msg)); break;
+        case T3::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T3&>(msg)); break;
+        case T4::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T4&>(msg)); break;
+        case T5::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T5&>(msg)); break;
+        case T6::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T6&>(msg)); break;
+        case T7::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T7&>(msg)); break;
+        case T8::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T8&>(msg)); break;
+        case T9::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T9&>(msg)); break;
+        case T10::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T10&>(msg)); break;
+        case T11::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T11&>(msg)); break;
+        case T12::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T12&>(msg)); break;
+        case T13::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T13&>(msg)); break;
+        case T14::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T14&>(msg)); break;
+        case T15::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T15&>(msg)); break;
         default:
         {
            if (has_successor())
            {
-             get_successor().receive(source, msg);
+             get_successor().receive(msg);
            }
            else
            {
-             static_cast<TDerived*>(this)->on_receive_unknown(source, msg);
+             static_cast<TDerived*>(this)->on_receive_unknown(msg);
            }
            break;
         }
@@ -568,35 +531,35 @@ namespace etl
     //**********************************************
     using etl::imessage_router::receive;
 
-    void receive(etl::imessage_router& source, const etl::imessage& msg) ETL_OVERRIDE
+    void receive(const etl::imessage& msg) ETL_OVERRIDE
     {
       const size_t id = msg.get_message_id();
 
       switch (id)
       {
-        case T1::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T1&>(msg)); break;
-        case T2::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T2&>(msg)); break;
-        case T3::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T3&>(msg)); break;
-        case T4::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T4&>(msg)); break;
-        case T5::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T5&>(msg)); break;
-        case T6::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T6&>(msg)); break;
-        case T7::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T7&>(msg)); break;
-        case T8::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T8&>(msg)); break;
-        case T9::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T9&>(msg)); break;
-        case T10::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T10&>(msg)); break;
-        case T11::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T11&>(msg)); break;
-        case T12::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T12&>(msg)); break;
-        case T13::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T13&>(msg)); break;
-        case T14::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T14&>(msg)); break;
+        case T1::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T1&>(msg)); break;
+        case T2::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T2&>(msg)); break;
+        case T3::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T3&>(msg)); break;
+        case T4::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T4&>(msg)); break;
+        case T5::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T5&>(msg)); break;
+        case T6::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T6&>(msg)); break;
+        case T7::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T7&>(msg)); break;
+        case T8::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T8&>(msg)); break;
+        case T9::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T9&>(msg)); break;
+        case T10::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T10&>(msg)); break;
+        case T11::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T11&>(msg)); break;
+        case T12::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T12&>(msg)); break;
+        case T13::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T13&>(msg)); break;
+        case T14::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T14&>(msg)); break;
         default:
         {
            if (has_successor())
            {
-             get_successor().receive(source, msg);
+             get_successor().receive(msg);
            }
            else
            {
-             static_cast<TDerived*>(this)->on_receive_unknown(source, msg);
+             static_cast<TDerived*>(this)->on_receive_unknown(msg);
            }
            break;
         }
@@ -669,34 +632,34 @@ namespace etl
     //**********************************************
     using etl::imessage_router::receive;
 
-    void receive(etl::imessage_router& source, const etl::imessage& msg) ETL_OVERRIDE
+    void receive(const etl::imessage& msg) ETL_OVERRIDE
     {
       const size_t id = msg.get_message_id();
 
       switch (id)
       {
-        case T1::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T1&>(msg)); break;
-        case T2::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T2&>(msg)); break;
-        case T3::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T3&>(msg)); break;
-        case T4::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T4&>(msg)); break;
-        case T5::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T5&>(msg)); break;
-        case T6::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T6&>(msg)); break;
-        case T7::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T7&>(msg)); break;
-        case T8::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T8&>(msg)); break;
-        case T9::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T9&>(msg)); break;
-        case T10::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T10&>(msg)); break;
-        case T11::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T11&>(msg)); break;
-        case T12::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T12&>(msg)); break;
-        case T13::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T13&>(msg)); break;
+        case T1::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T1&>(msg)); break;
+        case T2::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T2&>(msg)); break;
+        case T3::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T3&>(msg)); break;
+        case T4::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T4&>(msg)); break;
+        case T5::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T5&>(msg)); break;
+        case T6::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T6&>(msg)); break;
+        case T7::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T7&>(msg)); break;
+        case T8::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T8&>(msg)); break;
+        case T9::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T9&>(msg)); break;
+        case T10::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T10&>(msg)); break;
+        case T11::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T11&>(msg)); break;
+        case T12::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T12&>(msg)); break;
+        case T13::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T13&>(msg)); break;
         default:
         {
            if (has_successor())
            {
-             get_successor().receive(source, msg);
+             get_successor().receive(msg);
            }
            else
            {
-             static_cast<TDerived*>(this)->on_receive_unknown(source, msg);
+             static_cast<TDerived*>(this)->on_receive_unknown(msg);
            }
            break;
         }
@@ -768,33 +731,33 @@ namespace etl
     //**********************************************
     using etl::imessage_router::receive;
 
-    void receive(etl::imessage_router& source, const etl::imessage& msg) ETL_OVERRIDE
+    void receive(const etl::imessage& msg) ETL_OVERRIDE
     {
       const size_t id = msg.get_message_id();
 
       switch (id)
       {
-        case T1::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T1&>(msg)); break;
-        case T2::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T2&>(msg)); break;
-        case T3::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T3&>(msg)); break;
-        case T4::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T4&>(msg)); break;
-        case T5::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T5&>(msg)); break;
-        case T6::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T6&>(msg)); break;
-        case T7::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T7&>(msg)); break;
-        case T8::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T8&>(msg)); break;
-        case T9::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T9&>(msg)); break;
-        case T10::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T10&>(msg)); break;
-        case T11::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T11&>(msg)); break;
-        case T12::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T12&>(msg)); break;
+        case T1::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T1&>(msg)); break;
+        case T2::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T2&>(msg)); break;
+        case T3::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T3&>(msg)); break;
+        case T4::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T4&>(msg)); break;
+        case T5::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T5&>(msg)); break;
+        case T6::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T6&>(msg)); break;
+        case T7::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T7&>(msg)); break;
+        case T8::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T8&>(msg)); break;
+        case T9::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T9&>(msg)); break;
+        case T10::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T10&>(msg)); break;
+        case T11::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T11&>(msg)); break;
+        case T12::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T12&>(msg)); break;
         default:
         {
            if (has_successor())
            {
-             get_successor().receive(source, msg);
+             get_successor().receive(msg);
            }
            else
            {
-             static_cast<TDerived*>(this)->on_receive_unknown(source, msg);
+             static_cast<TDerived*>(this)->on_receive_unknown(msg);
            }
            break;
         }
@@ -866,32 +829,32 @@ namespace etl
     //**********************************************
     using etl::imessage_router::receive;
 
-    void receive(etl::imessage_router& source, const etl::imessage& msg) ETL_OVERRIDE
+    void receive(const etl::imessage& msg) ETL_OVERRIDE
     {
       const size_t id = msg.get_message_id();
 
       switch (id)
       {
-        case T1::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T1&>(msg)); break;
-        case T2::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T2&>(msg)); break;
-        case T3::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T3&>(msg)); break;
-        case T4::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T4&>(msg)); break;
-        case T5::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T5&>(msg)); break;
-        case T6::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T6&>(msg)); break;
-        case T7::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T7&>(msg)); break;
-        case T8::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T8&>(msg)); break;
-        case T9::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T9&>(msg)); break;
-        case T10::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T10&>(msg)); break;
-        case T11::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T11&>(msg)); break;
+        case T1::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T1&>(msg)); break;
+        case T2::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T2&>(msg)); break;
+        case T3::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T3&>(msg)); break;
+        case T4::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T4&>(msg)); break;
+        case T5::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T5&>(msg)); break;
+        case T6::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T6&>(msg)); break;
+        case T7::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T7&>(msg)); break;
+        case T8::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T8&>(msg)); break;
+        case T9::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T9&>(msg)); break;
+        case T10::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T10&>(msg)); break;
+        case T11::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T11&>(msg)); break;
         default:
         {
            if (has_successor())
            {
-             get_successor().receive(source, msg);
+             get_successor().receive(msg);
            }
            else
            {
-             static_cast<TDerived*>(this)->on_receive_unknown(source, msg);
+             static_cast<TDerived*>(this)->on_receive_unknown(msg);
            }
            break;
         }
@@ -963,31 +926,31 @@ namespace etl
     //**********************************************
     using etl::imessage_router::receive;
 
-    void receive(etl::imessage_router& source, const etl::imessage& msg) ETL_OVERRIDE
+    void receive(const etl::imessage& msg) ETL_OVERRIDE
     {
       const size_t id = msg.get_message_id();
 
       switch (id)
       {
-        case T1::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T1&>(msg)); break;
-        case T2::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T2&>(msg)); break;
-        case T3::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T3&>(msg)); break;
-        case T4::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T4&>(msg)); break;
-        case T5::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T5&>(msg)); break;
-        case T6::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T6&>(msg)); break;
-        case T7::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T7&>(msg)); break;
-        case T8::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T8&>(msg)); break;
-        case T9::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T9&>(msg)); break;
-        case T10::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T10&>(msg)); break;
+        case T1::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T1&>(msg)); break;
+        case T2::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T2&>(msg)); break;
+        case T3::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T3&>(msg)); break;
+        case T4::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T4&>(msg)); break;
+        case T5::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T5&>(msg)); break;
+        case T6::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T6&>(msg)); break;
+        case T7::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T7&>(msg)); break;
+        case T8::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T8&>(msg)); break;
+        case T9::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T9&>(msg)); break;
+        case T10::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T10&>(msg)); break;
         default:
         {
            if (has_successor())
            {
-             get_successor().receive(source, msg);
+             get_successor().receive(msg);
            }
            else
            {
-             static_cast<TDerived*>(this)->on_receive_unknown(source, msg);
+             static_cast<TDerived*>(this)->on_receive_unknown(msg);
            }
            break;
         }
@@ -1059,30 +1022,30 @@ namespace etl
     //**********************************************
     using etl::imessage_router::receive;
 
-    void receive(etl::imessage_router& source, const etl::imessage& msg) ETL_OVERRIDE
+    void receive(const etl::imessage& msg) ETL_OVERRIDE
     {
       const size_t id = msg.get_message_id();
 
       switch (id)
       {
-        case T1::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T1&>(msg)); break;
-        case T2::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T2&>(msg)); break;
-        case T3::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T3&>(msg)); break;
-        case T4::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T4&>(msg)); break;
-        case T5::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T5&>(msg)); break;
-        case T6::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T6&>(msg)); break;
-        case T7::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T7&>(msg)); break;
-        case T8::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T8&>(msg)); break;
-        case T9::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T9&>(msg)); break;
+        case T1::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T1&>(msg)); break;
+        case T2::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T2&>(msg)); break;
+        case T3::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T3&>(msg)); break;
+        case T4::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T4&>(msg)); break;
+        case T5::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T5&>(msg)); break;
+        case T6::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T6&>(msg)); break;
+        case T7::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T7&>(msg)); break;
+        case T8::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T8&>(msg)); break;
+        case T9::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T9&>(msg)); break;
         default:
         {
            if (has_successor())
            {
-             get_successor().receive(source, msg);
+             get_successor().receive(msg);
            }
            else
            {
-             static_cast<TDerived*>(this)->on_receive_unknown(source, msg);
+             static_cast<TDerived*>(this)->on_receive_unknown(msg);
            }
            break;
         }
@@ -1153,29 +1116,29 @@ namespace etl
     //**********************************************
     using etl::imessage_router::receive;
 
-    void receive(etl::imessage_router& source, const etl::imessage& msg) ETL_OVERRIDE
+    void receive(const etl::imessage& msg) ETL_OVERRIDE
     {
       const size_t id = msg.get_message_id();
 
       switch (id)
       {
-        case T1::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T1&>(msg)); break;
-        case T2::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T2&>(msg)); break;
-        case T3::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T3&>(msg)); break;
-        case T4::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T4&>(msg)); break;
-        case T5::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T5&>(msg)); break;
-        case T6::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T6&>(msg)); break;
-        case T7::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T7&>(msg)); break;
-        case T8::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T8&>(msg)); break;
+        case T1::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T1&>(msg)); break;
+        case T2::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T2&>(msg)); break;
+        case T3::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T3&>(msg)); break;
+        case T4::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T4&>(msg)); break;
+        case T5::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T5&>(msg)); break;
+        case T6::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T6&>(msg)); break;
+        case T7::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T7&>(msg)); break;
+        case T8::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T8&>(msg)); break;
         default:
         {
            if (has_successor())
            {
-             get_successor().receive(source, msg);
+             get_successor().receive(msg);
            }
            else
            {
-             static_cast<TDerived*>(this)->on_receive_unknown(source, msg);
+             static_cast<TDerived*>(this)->on_receive_unknown(msg);
            }
            break;
         }
@@ -1246,28 +1209,28 @@ namespace etl
     //**********************************************
     using etl::imessage_router::receive;
 
-    void receive(etl::imessage_router& source, const etl::imessage& msg) ETL_OVERRIDE
+    void receive(const etl::imessage& msg) ETL_OVERRIDE
     {
       const size_t id = msg.get_message_id();
 
       switch (id)
       {
-        case T1::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T1&>(msg)); break;
-        case T2::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T2&>(msg)); break;
-        case T3::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T3&>(msg)); break;
-        case T4::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T4&>(msg)); break;
-        case T5::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T5&>(msg)); break;
-        case T6::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T6&>(msg)); break;
-        case T7::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T7&>(msg)); break;
+        case T1::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T1&>(msg)); break;
+        case T2::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T2&>(msg)); break;
+        case T3::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T3&>(msg)); break;
+        case T4::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T4&>(msg)); break;
+        case T5::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T5&>(msg)); break;
+        case T6::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T6&>(msg)); break;
+        case T7::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T7&>(msg)); break;
         default:
         {
            if (has_successor())
            {
-             get_successor().receive(source, msg);
+             get_successor().receive(msg);
            }
            else
            {
-             static_cast<TDerived*>(this)->on_receive_unknown(source, msg);
+             static_cast<TDerived*>(this)->on_receive_unknown(msg);
            }
            break;
         }
@@ -1337,27 +1300,27 @@ namespace etl
     //**********************************************
     using etl::imessage_router::receive;
 
-    void receive(etl::imessage_router& source, const etl::imessage& msg) ETL_OVERRIDE
+    void receive(const etl::imessage& msg) ETL_OVERRIDE
     {
       const size_t id = msg.get_message_id();
 
       switch (id)
       {
-        case T1::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T1&>(msg)); break;
-        case T2::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T2&>(msg)); break;
-        case T3::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T3&>(msg)); break;
-        case T4::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T4&>(msg)); break;
-        case T5::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T5&>(msg)); break;
-        case T6::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T6&>(msg)); break;
+        case T1::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T1&>(msg)); break;
+        case T2::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T2&>(msg)); break;
+        case T3::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T3&>(msg)); break;
+        case T4::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T4&>(msg)); break;
+        case T5::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T5&>(msg)); break;
+        case T6::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T6&>(msg)); break;
         default:
         {
            if (has_successor())
            {
-             get_successor().receive(source, msg);
+             get_successor().receive(msg);
            }
            else
            {
-             static_cast<TDerived*>(this)->on_receive_unknown(source, msg);
+             static_cast<TDerived*>(this)->on_receive_unknown(msg);
            }
            break;
         }
@@ -1427,26 +1390,26 @@ namespace etl
     //**********************************************
     using etl::imessage_router::receive;
 
-    void receive(etl::imessage_router& source, const etl::imessage& msg) ETL_OVERRIDE
+    void receive(const etl::imessage& msg) ETL_OVERRIDE
     {
       const size_t id = msg.get_message_id();
 
       switch (id)
       {
-        case T1::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T1&>(msg)); break;
-        case T2::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T2&>(msg)); break;
-        case T3::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T3&>(msg)); break;
-        case T4::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T4&>(msg)); break;
-        case T5::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T5&>(msg)); break;
+        case T1::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T1&>(msg)); break;
+        case T2::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T2&>(msg)); break;
+        case T3::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T3&>(msg)); break;
+        case T4::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T4&>(msg)); break;
+        case T5::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T5&>(msg)); break;
         default:
         {
            if (has_successor())
            {
-             get_successor().receive(source, msg);
+             get_successor().receive(msg);
            }
            else
            {
-             static_cast<TDerived*>(this)->on_receive_unknown(source, msg);
+             static_cast<TDerived*>(this)->on_receive_unknown(msg);
            }
            break;
         }
@@ -1515,25 +1478,25 @@ namespace etl
     //**********************************************
     using etl::imessage_router::receive;
 
-    void receive(etl::imessage_router& source, const etl::imessage& msg) ETL_OVERRIDE
+    void receive(const etl::imessage& msg) ETL_OVERRIDE
     {
       const size_t id = msg.get_message_id();
 
       switch (id)
       {
-        case T1::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T1&>(msg)); break;
-        case T2::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T2&>(msg)); break;
-        case T3::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T3&>(msg)); break;
-        case T4::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T4&>(msg)); break;
+        case T1::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T1&>(msg)); break;
+        case T2::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T2&>(msg)); break;
+        case T3::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T3&>(msg)); break;
+        case T4::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T4&>(msg)); break;
         default:
         {
            if (has_successor())
            {
-             get_successor().receive(source, msg);
+             get_successor().receive(msg);
            }
            else
            {
-             static_cast<TDerived*>(this)->on_receive_unknown(source, msg);
+             static_cast<TDerived*>(this)->on_receive_unknown(msg);
            }
            break;
         }
@@ -1602,24 +1565,24 @@ namespace etl
     //**********************************************
     using etl::imessage_router::receive;
 
-    void receive(etl::imessage_router& source, const etl::imessage& msg) ETL_OVERRIDE
+    void receive(const etl::imessage& msg) ETL_OVERRIDE
     {
       const size_t id = msg.get_message_id();
 
       switch (id)
       {
-        case T1::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T1&>(msg)); break;
-        case T2::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T2&>(msg)); break;
-        case T3::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T3&>(msg)); break;
+        case T1::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T1&>(msg)); break;
+        case T2::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T2&>(msg)); break;
+        case T3::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T3&>(msg)); break;
         default:
         {
            if (has_successor())
            {
-             get_successor().receive(source, msg);
+             get_successor().receive(msg);
            }
            else
            {
-             static_cast<TDerived*>(this)->on_receive_unknown(source, msg);
+             static_cast<TDerived*>(this)->on_receive_unknown(msg);
            }
            break;
         }
@@ -1688,23 +1651,23 @@ namespace etl
     //**********************************************
     using etl::imessage_router::receive;
 
-    void receive(etl::imessage_router& source, const etl::imessage& msg) ETL_OVERRIDE
+    void receive(const etl::imessage& msg) ETL_OVERRIDE
     {
       const size_t id = msg.get_message_id();
 
       switch (id)
       {
-        case T1::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T1&>(msg)); break;
-        case T2::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T2&>(msg)); break;
+        case T1::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T1&>(msg)); break;
+        case T2::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T2&>(msg)); break;
         default:
         {
            if (has_successor())
            {
-             get_successor().receive(source, msg);
+             get_successor().receive(msg);
            }
            else
            {
-             static_cast<TDerived*>(this)->on_receive_unknown(source, msg);
+             static_cast<TDerived*>(this)->on_receive_unknown(msg);
            }
            break;
         }
@@ -1773,22 +1736,22 @@ namespace etl
     //**********************************************
     using etl::imessage_router::receive;
 
-    void receive(etl::imessage_router& source, const etl::imessage& msg) ETL_OVERRIDE
+    void receive(const etl::imessage& msg) ETL_OVERRIDE
     {
       const size_t id = msg.get_message_id();
 
       switch (id)
       {
-        case T1::ID: static_cast<TDerived*>(this)->on_receive(source, static_cast<const T1&>(msg)); break;
+        case T1::ID: static_cast<TDerived*>(this)->on_receive(static_cast<const T1&>(msg)); break;
         default:
         {
            if (has_successor())
            {
-             get_successor().receive(source, msg);
+             get_successor().receive(msg);
            }
            else
            {
-             static_cast<TDerived*>(this)->on_receive_unknown(source, msg);
+             static_cast<TDerived*>(this)->on_receive_unknown(msg);
            }
            break;
         }
@@ -1828,7 +1791,5 @@ namespace etl
     }
   };
 }
-
-#undef ETL_FILE
 
 #endif

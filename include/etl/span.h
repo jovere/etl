@@ -44,8 +44,7 @@ SOFTWARE.
 /// A wrapper for arrays
 ///\ingroup containers
 
-#undef ETL_FILE
-#define ETL_FILE "41"
+#if ETL_CPP11_SUPPORTED
 
 namespace etl
 {
@@ -350,6 +349,24 @@ namespace etl
 #endif 
 
   //*************************************************************************
+/// Template deduction guides.
+//*************************************************************************
+#if ETL_CPP17_SUPPORTED
+  template <typename TArray>
+  span(TArray& a)
+    ->span<typename TArray::value_type>;
+
+  template <typename TIterator>
+  span(const TIterator begin_, const TIterator end_)
+    ->span<etl::remove_pointer_t<TIterator>>;
+
+  template <typename TIterator,
+            typename TSize>
+    span(const TIterator begin_, const TSize size_)
+    ->span<etl::remove_pointer_t<TIterator>>;
+#endif 
+
+  //*************************************************************************
   /// Hash function.
   //*************************************************************************
 #if ETL_8BIT_SUPPORT
@@ -365,7 +382,7 @@ namespace etl
 #endif
 }
 
-#undef ETL_FILE
+#endif
 
 #endif
 

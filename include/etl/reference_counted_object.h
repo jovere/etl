@@ -182,10 +182,26 @@ namespace etl
     //***************************************************************************
     /// Constructor.
     //***************************************************************************
+    reference_counted_object()
+    {
+    }
+
+    //***************************************************************************
+    /// Constructor.
+    //***************************************************************************
     reference_counted_object(const TObject& object_)
       : object(object_)
     {
     }
+
+    //***************************************************************************
+    /// Get a reference to the counted object.
+    //***************************************************************************
+    ETL_NODISCARD value_type& get_object()
+    {
+      return object;
+    }
+
 
     //***************************************************************************
     /// Get a const reference to the counted object.
@@ -213,12 +229,11 @@ namespace etl
 
   private:
 
-    // This class must not be default contructed, copy constructed or assigned.
-    reference_counted_object() ETL_DELETE;
+    // This class must not be copy constructed or assigned.
     reference_counted_object(const reference_counted_object&) ETL_DELETE;
     reference_counted_object& operator =(const reference_counted_object&) ETL_DELETE;
         
-    const TObject object;                               ///< The object being reference counted.
+    TObject object;                                     ///< The object being reference counted.
     etl::reference_counter<TCounter> reference_counter; ///< The reference counter.
   };
 

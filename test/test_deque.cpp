@@ -26,8 +26,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ******************************************************************************/
 
-#include "UnitTest++/UnitTest++.h"
-#include "ExtraCheckMacros.h"
+#include "unit_test_framework.h"
 
 #include "etl/deque.h"
 
@@ -35,6 +34,7 @@ SOFTWARE.
 
 #include <vector>
 #include <deque>
+#include <array>
 #include <algorithm>
 #include <iostream>
 #include <numeric>
@@ -1991,6 +1991,22 @@ namespace
     {
       // No compilation error.
       etl::deque<int, 10> v(5, 5);
+    }
+
+    //*************************************************************************
+    TEST(test_sort)
+    {
+      std::array<int, 10> initial = { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 };
+      std::array<int, 10> result = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+
+      etl::deque<int, 10> data(initial.begin(), initial.end());
+      std::sort(data.begin(), data.end());
+
+      bool is_equal = std::equal(data.begin(),
+                                 data.end(),
+                                 result.begin());
+
+      CHECK(is_equal);
     }
   };
 }
