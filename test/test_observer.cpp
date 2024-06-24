@@ -37,6 +37,28 @@ namespace
   //*****************************************************************************
   struct Notification1
   {
+    // constructor
+    Notification1() = default;
+    // constructor
+    explicit Notification1(int data) : data(data) {}
+    // copy constructor
+    Notification1(const Notification1&) = default;
+    // move constructor
+    Notification1(Notification1&& other) noexcept
+      : data(std::exchange(other.data, -1)){};
+    // copy assignment
+    Notification1& operator = (const Notification1&) = default;
+    // move assignment
+    Notification1& operator = (Notification1&& other) noexcept
+    {
+      std::swap(data, other.data);
+      return *this;
+    }
+    virtual ~Notification1() = default; // destructor
+
+    int get_data() const { return data; }
+  private:
+    int data = 24;
   };
 
   //*****************************************************************************
@@ -44,6 +66,28 @@ namespace
   //*****************************************************************************
   struct Notification2
   {
+    // constructor
+    Notification2() = default;
+    // constructor
+    explicit Notification2(int data) : data(data) {}
+    // copy constructor
+    Notification2(const Notification2&) = delete;
+    // move constructor
+    Notification2(Notification2&& other) noexcept
+      : data(std::exchange(other.data, -1)){};
+    // copy assignment
+    Notification2& operator = (const Notification2&) = delete;
+    // move assignment
+    Notification2& operator = (Notification2&& other) noexcept
+    {
+      std::swap(data, other.data);
+      return *this;
+    }
+    virtual ~Notification2() = default; // destructor
+
+    int get_data() const { return data; }
+  private:
+    int data = 48;
   };
 
   //*****************************************************************************
@@ -51,6 +95,28 @@ namespace
   //*****************************************************************************
   struct Notification3
   {
+    // constructor
+    Notification3() = default;
+    // constructor
+    explicit Notification3(int data) : data(data) {}
+    // copy constructor
+    Notification3(const Notification3&) = delete;
+    // move constructor
+    Notification3(Notification3&& other) noexcept
+      : data(std::exchange(other.data, -1)){};
+    // copy assignment
+    Notification3& operator = (const Notification3&) = delete;
+    // move assignment
+    Notification3& operator = (Notification3&& other) noexcept
+    {
+      std::swap(data, other.data);
+      return *this;
+    }
+    virtual ~Notification3() = default; // destructor
+
+    int get_data() const { return data; }
+  private:
+    int data = 42;
   };
 
   //*****************************************************************************
@@ -111,15 +177,32 @@ public:
 };
 
 //*****************************************************************************
-// The first observer type.
-// If any one of the overloads is missing or a parameter declaration is incorrect
-// then the class will be 'abstract' and will not compile.
+// The concrete observable 3 class.
 //*****************************************************************************
-class Observer1 : public ObserverType
+class Observable3 : public etl::observable<ObserverType, 3>
 {
 public:
 
-  Observer1()
+  //*********************************
+  // Notify all of the observers.
+  //*********************************
+  void send_notifications()
+  {
+    notify_observers(Notification1{34});
+    notify_observers(Notification2{97});
+  }
+};
+
+//*****************************************************************************
+// The observer type.
+// If any one of the overloads is missing or a parameter declaration is incorrect
+// then the class will be 'abstract' and will not compile.
+//*****************************************************************************
+class TestObserver : public ObserverType
+{
+public:
+
+  TestObserver()
     : data1_count(0),
       data2_count(0),
       data3_count(0)
@@ -156,48 +239,43 @@ public:
 };
 
 //*****************************************************************************
-// The second observer type.
+// The observer type.
 // If any one of the overloads is missing or a parameter declaration is incorrect
 // then the class will be 'abstract' and will not compile.
 //*****************************************************************************
-class Observer2 : public ObserverType
+class TestObserver2 : public ObserverType
 {
 public:
 
-  Observer2()
-    : data1_count(0),
-      data2_count(0),
-      data3_count(0)
+  TestObserver2()
   {
   }
 
   //*******************************************
   // Notification1 is passed by value.
   //*******************************************
-  void notification(Notification1 /*data1*/)
-	{
-    ++data1_count;
-	}
+  void notification(Notification1 data1)
+  {
+    m_data1 = data1;
+  }
 
   //*******************************************
   // Notification2 is passed by reference.
   //*******************************************
-  void notification(Notification2& /*data2*/)
-	{
-    ++data2_count;
-	}
+  void notification(Notification2& data2)
+  {
+    m_notification2data = data2.get_data();
+  }
 
   //*******************************************
   // Notification3 is passed by const reference.
   //*******************************************
   void notification(const Notification3& /*data3*/)
-	{
-    ++data3_count;
-	}
+  {
+  }
 
-  int data1_count;
-  int data2_count;
-  int data3_count;
+  Notification1 m_data1{};
+  int m_notification2data{1234};
 };
 
 namespace
@@ -212,8 +290,8 @@ namespace
       Observable2 observable2;
 
       // The observer objects.
-      Observer1 observer1;
-      Observer2 observer2;
+      TestObserver observer1;
+      TestObserver observer2;
 
       observable1.add_observer(observer1);
 
@@ -294,8 +372,8 @@ namespace
       Observable1 observable1;
 
       // The observer objects.
-      Observer1 observer1;
-      Observer2 observer2;
+      TestObserver observer1;
+      TestObserver observer2;
 
       observable1.add_observer(observer1);
       observable1.add_observer(observer2);
@@ -333,6 +411,28 @@ namespace
 
       CHECK_EQUAL(3, observer1.data1_count);
       CHECK_EQUAL(3, observer2.data1_count);
+    }
+
+    TEST(test_that_data_is_not_moved_when_sent_to_multiple_observers)
+    {
+      // The observable objects.
+      Observable3 observable3;
+
+      // The observer objects.
+      TestObserver2 observer1;
+      TestObserver2 observer2;
+
+      observable3.add_observer(observer1);
+      observable3.add_observer(observer2);
+
+      observable3.send_notifications();
+
+      Notification1 data{34};
+      CHECK_EQUAL(data.get_data(), observer1.m_data1.get_data());
+      CHECK_EQUAL(data.get_data(), observer2.m_data1.get_data());
+      Notification2 data2{97};
+      CHECK_EQUAL(data2.get_data(), observer1.m_notification2data);
+      CHECK_EQUAL(data2.get_data(), observer2.m_notification2data);
     }
 
     //*************************************************************************
